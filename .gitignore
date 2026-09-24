@@ -1,0 +1,42 @@
+# =====================================================================
+# AutoReach .gitignore
+# =====================================================================
+
+# 1. CRITICAL: SENSITIVE CREDENTIALS & USER DATA
+# Never commit your email password, app passwords, or personal history to Git!
+data/config.json
+data/history.json
+.env
+.env.*
+
+# 2. PRIVATE USER UPLOADS & RESUMES
+# Protects your personal resume, contact information, and company lists
+uploads/*
+!uploads/.gitkeep
+!uploads/Sample_Resume.pdf
+
+# 3. PYTHON CACHE & COMPILED ARTIFACTS
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# 4. VIRTUAL ENVIRONMENTS
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# 5. OS ARTIFACTS & LOGS
+*.log
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
+
+# 6. IDE & EDITOR SETTINGS
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
