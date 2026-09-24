@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoReach | One-Click Resume & Cold Email Dispatcher</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .pulse-glow {
+      box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.4);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-brand-500 selection:text-white">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+          <i data-lucide="send" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <span class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            AutoReach <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-brand-500/20 text-brand-400 border border-brand-500/30">Pro Mailer</span>
+          </span>
+          <p class="text-xs text-slate-400">Direct 1-to-1 Resume & Job Outreach Automation</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="openGmailHelpModal()" class="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 transition-all">
+          <i data-lucide="key" class="w-3.5 h-3.5"></i>
+          <span>Gmail App Password Guide</span>
+        </button>
+        <button onclick="downloadSampleCsv()" class="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 hover:text-white transition-all">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>Sample Companies CSV</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- HERO CALLOUT BANNER -->
+    <div class="mb-8 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+      <div class="space-y-1.5">
+        <div class="flex items-center gap-2 text-brand-400 font-semibold text-sm">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>100% Direct & Safe 1-to-1 Delivery</span>
+        </div>
+        <h1 class="text-2xl font-bold text-white tracking-tight">Send Personalized Job Applications to 50+ Companies at Once</h1>
+        <p class="text-slate-400 text-sm max-w-2xl">
+          Unlike spammy mass BCC emails that land straight in trash, AutoReach emails each recruiter individually with customized company placeholders, personalized greeting, attached resume, and safe time-throttling.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3 self-start md:self-auto shrink-0">
+        <div class="px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+          <div id="statTotalRecipients" class="text-xl font-bold text-white">0</div>
+          <div class="text-[11px] text-slate-400 uppercase tracking-wider">Recipients</div>
+        </div>
+        <div class="px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+          <div id="statResumeStatus" class="text-xl font-bold text-amber-400">None</div>
+          <div class="text-[11px] text-slate-400 uppercase tracking-wider">Resume</div>
+        </div>
+        <div class="px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+          <div id="statConnectionStatus" class="text-xl font-bold text-slate-400">Offline</div>
+          <div class="text-[11px] text-slate-400 uppercase tracking-wider">SMTP</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS / STEP PROGRESS NAVIGATION -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <button onclick="switchTab('tab-settings')" id="nav-tab-settings" class="tab-btn flex items-center gap-3 p-3.5 rounded-xl border border-brand-500/40 bg-brand-500/10 text-white font-medium text-sm transition-all text-left">
+        <span class="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center font-bold text-xs shrink-0">1</span>
+        <div>
+          <div class="font-semibold text-white">Email & SMTP</div>
+          <div class="text-xs text-slate-400">Account Credentials</div>
+        </div>
+      </button>
+
+      <button onclick="switchTab('tab-resume')" id="nav-tab-resume" class="tab-btn flex items-center gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 font-medium text-sm hover:border-slate-700 transition-all text-left">
+        <span class="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-xs shrink-0">2</span>
+        <div>
+          <div class="font-semibold text-slate-300">Resume & Pitch</div>
+          <div class="text-xs text-slate-500">File & Templates</div>
+        </div>
+      </button>
+
+      <button onclick="switchTab('tab-recipients')" id="nav-tab-recipients" class="tab-btn flex items-center gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 font-medium text-sm hover:border-slate-700 transition-all text-left">
+        <span class="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-xs shrink-0">3</span>
+        <div>
+          <div class="font-semibold text-slate-300">Companies List</div>
+          <div class="text-xs text-slate-500">Upload CSV / Excel</div>
+        </div>
+      </button>
+
+      <button onclick="switchTab('tab-dispatch')" id="nav-tab-dispatch" class="tab-btn flex items-center gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 font-medium text-sm hover:border-slate-700 transition-all text-left">
+        <span class="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-xs shrink-0">4</span>
+        <div>
+          <div class="font-semibold text-slate-300">Review & Launch</div>
+          <div class="text-xs text-slate-500">Live Progress</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- TAB 1: EMAIL & SMTP SETTINGS -->
+    <section id="tab-settings" class="tab-content space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- SETTINGS FORM -->
+        <div class="lg:col-span-2 rounded-2xl bg-slate-900/80 border border-slate-800 p-6 space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i data-lucide="mail-check" class="w-5 h-5 text-brand-400"></i>
+                Your Email Account Credentials
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">All emails will be sent directly from your own email inbox</p>
+            </div>
+            <button onclick="testSmtpConnection()" id="btnTestConn" class="text-xs flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-medium border border-slate-700 transition">
+              <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Test Connection</span>
+            </button>
+          </div>
+
+          <div id="connAlertBox" class="hidden p-3.5 rounded-xl text-xs font-medium border"></div>
+
+          <form id="settingsForm" onsubmit="saveSettings(event)" class="space-y-4">
+            <!-- Provider Picker -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Select Email Service Provider</label>
+              <div class="grid grid-cols-3 gap-3">
+                <label class="cursor-pointer border border-brand-500/40 bg-brand-500/10 rounded-xl p-3 flex flex-col items-center justify-center text-center hover:border-brand-500 transition" id="providerLabel-gmail">
+                  <input type="radio" name="provider" value="gmail" checked onchange="onProviderChange('gmail')" class="sr-only">
+                  <span class="font-bold text-sm text-white flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Gmail
+                  </span>
+                  <span class="text-[11px] text-slate-400 mt-0.5">App Password</span>
+                </label>
+
+                <label class="cursor-pointer border border-slate-800 bg-slate-900/50 rounded-xl p-3 flex flex-col items-center justify-center text-center hover:border-slate-700 transition" id="providerLabel-outlook">
+                  <input type="radio" name="provider" value="outlook" onchange="onProviderChange('outlook')" class="sr-only">
+                  <span class="font-bold text-sm text-white flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span> Outlook / Hotmail
+                  </span>
+                  <span class="text-[11px] text-slate-400 mt-0.5">Office365 / Outlook</span>
+                </label>
+
+                <label class="cursor-pointer border border-slate-800 bg-slate-900/50 rounded-xl p-3 flex flex-col items-center justify-center text-center hover:border-slate-700 transition" id="providerLabel-custom">
+                  <input type="radio" name="provider" value="custom" onchange="onProviderChange('custom')" class="sr-only">
+                  <span class="font-bold text-sm text-white flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Custom SMTP
+                  </span>
+                  <span class="text-[11px] text-slate-400 mt-0.5">Yahoo, Zoho, Work</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Your Full Name (Sender Name)</label>
+                <input type="text" id="cfgSenderName" required placeholder="e.g. John Doe" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 transition">
+                <p class="text-[11px] text-slate-500 mt-1">Shown in the recipient's inbox as the sender</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Your Email Address</label>
+                <input type="email" id="cfgSenderEmail" required placeholder="your.name@gmail.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 transition">
+                <p class="text-[11px] text-slate-500 mt-1">Must match your email account</p>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-medium text-slate-300" id="lblPassword">Gmail 16-character App Password</label>
+                <button type="button" onclick="openGmailHelpModal()" class="text-[11px] text-brand-400 hover:text-brand-300 underline flex items-center gap-1">
+                  How do I get an App Password?
+                </button>
+              </div>
+              <div class="relative">
+                <input type="password" id="cfgPassword" placeholder="••••••••••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 pr-10 text-sm text-white focus:outline-none focus:border-brand-500 font-mono transition">
+                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-white">
+                  <i data-lucide="eye" id="eyeIcon" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <p class="text-[11px] text-amber-400/90 mt-1 flex items-center gap-1">
+                <i data-lucide="alert-circle" class="w-3 h-3 shrink-0"></i>
+                <span>Google blocks direct logins. Use a 16-character App Password, not your regular password!</span>
+              </p>
+            </div>
+
+            <!-- Custom SMTP Details (Accordion or Hidden unless selected) -->
+            <div id="customSmtpFields" class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3 hidden">
+              <div class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <i data-lucide="sliders" class="w-3.5 h-3.5 text-slate-400"></i>
+                Advanced SMTP Server Configuration
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="block text-[11px] text-slate-400 mb-1">SMTP Host</label>
+                  <input type="text" id="cfgSmtpHost" value="smtp.gmail.com" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-1">Port</label>
+                  <input type="number" id="cfgSmtpPort" value="465" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Security Protocol</label>
+                <select id="cfgSmtpSecurity" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                  <option value="SSL">SSL (Recommended for Port 465)</option>
+                  <option value="TLS">STARTTLS (Recommended for Port 587)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Sending Throttle / Anti-Spam protection -->
+            <div class="p-4 rounded-xl bg-slate-950/50 border border-slate-800/80 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <i data-lucide="clock" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  Safe Sending Throttle (Anti-Spam Delay)
+                </span>
+                <span class="text-[11px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-medium">Recommended: 5 - 10 sec</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-1">Minimum Delay (sec)</label>
+                  <input type="number" id="cfgMinDelay" min="1" max="60" value="5" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-1">Maximum Delay (sec)</label>
+                  <input type="number" id="cfgMaxDelay" min="2" max="120" value="10" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-500 leading-relaxed">
+                A random delay between each email prevents Gmail/Outlook from flagging your account for automated bot activity.
+              </p>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+              <button type="submit" id="btnSaveConfig" class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-lg shadow-brand-500/25 transition">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span>Save Email Settings</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- RIGHT SIDE GUIDE & TIPS -->
+        <div class="space-y-6">
+          <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-5 space-y-4">
+            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+              Why AutoReach Works Best
+            </h3>
+            <ul class="text-xs text-slate-300 space-y-2.5 leading-relaxed">
+              <li class="flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                <span><strong>No CC/BCC Leakage:</strong> Every recruiter gets an isolated private email addressed to them.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                <span><strong>High Deliverability:</strong> Sent directly through your authentic Google/Outlook SMTP with your DKIM & SPF records.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                <span><strong>Clean Attachments:</strong> Attaches your resume PDF cleanly as a standard MIME attachment.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="rounded-2xl bg-amber-500/5 border border-amber-500/20 p-5 space-y-3">
+            <h3 class="font-bold text-amber-300 text-sm flex items-center gap-2">
+              <i data-lucide="info" class="w-4 h-4"></i>
+              Gmail App Password in 60s
+            </h3>
+            <ol class="text-xs text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
+              <li>Enable <strong>2-Step Verification</strong> on your Google Account.</li>
+              <li>Visit <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-brand-400 underline font-semibold">myaccount.google.com/apppasswords</a></li>
+              <li>Name it <strong>"Job Mailer"</strong> & click <strong>Create</strong>.</li>
+              <li>Paste the 16-letter code in the password box on the left.</li>
+            </ol>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 2: RESUME & PITCH TEMPLATES -->
+    <section id="tab-resume" class="tab-content space-y-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- RESUME FILE UPLOAD BOX -->
+        <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-6 space-y-5">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="paperclip" class="w-5 h-5 text-brand-400"></i>
+              Resume Attachment
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Attach your PDF or DOCX resume to every outgoing email</p>
+          </div>
+
+          <!-- Drag and drop zone -->
+          <div id="dropZone" onclick="document.getElementById('resumeFileInput').click()" class="cursor-pointer border-2 border-dashed border-slate-700 hover:border-brand-500 bg-slate-950/50 hover:bg-brand-500/5 rounded-2xl p-6 text-center transition flex flex-col items-center justify-center space-y-3">
+            <input type="file" id="resumeFileInput" accept=".pdf,.docx,.doc" class="hidden" onchange="handleResumeSelected(event)">
+            <div class="w-12 h-12 rounded-2xl bg-brand-500/10 text-brand-400 flex items-center justify-center border border-brand-500/20">
+              <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-white">Click or drag & drop resume</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">PDF or Word (.docx, .doc), max 10MB</p>
+            </div>
+          </div>
+
+          <!-- Selected resume card -->
+          <div id="selectedResumeCard" class="hidden rounded-xl bg-slate-950 border border-slate-800 p-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3 overflow-hidden">
+              <div class="w-9 h-9 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center border border-red-500/20 shrink-0">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+              </div>
+              <div class="overflow-hidden">
+                <div id="currentResumeName" class="text-xs font-bold text-white truncate">resume.pdf</div>
+                <div id="currentResumeSize" class="text-[11px] text-slate-400">240 KB</div>
+              </div>
+            </div>
+            <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 shrink-0">
+              Attached
+            </span>
+          </div>
+
+          <!-- Quick Template Selector -->
+          <div class="space-y-2 pt-2 border-t border-slate-800">
+            <label class="block text-xs font-semibold text-slate-300">Choose Pitch Template</label>
+            <div id="templateButtons" class="space-y-1.5">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- COVER LETTER & EMAIL COMPOSER -->
+        <div class="lg:col-span-2 rounded-2xl bg-slate-900/80 border border-slate-800 p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i data-lucide="edit-3" class="w-5 h-5 text-indigo-400"></i>
+                Email Subject & Body
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Personalize with automatic tags: <code class="text-brand-300 bg-brand-500/10 px-1 py-0.5 rounded">{Company}</code>, <code class="text-brand-300 bg-brand-500/10 px-1 py-0.5 rounded">{Name}</code>, <code class="text-brand-300 bg-brand-500/10 px-1 py-0.5 rounded">{Role}</code></p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Email Subject Line</label>
+              <input type="text" id="emailSubject" value="Application for {Role} - {SenderName}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-medium focus:outline-none focus:border-brand-500 transition">
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-semibold text-slate-300">Email Pitch Message (Body)</label>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="insertPlaceholder('{Company}')" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">+ {Company}</button>
+                  <button type="button" onclick="insertPlaceholder('{Name}')" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">+ {Name}</button>
+                  <button type="button" onclick="insertPlaceholder('{Role}')" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">+ {Role}</button>
+                </div>
+              </div>
+              <textarea id="emailBody" rows="14" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-brand-500 transition leading-relaxed font-sans"></textarea>
+            </div>
+
+            <div class="flex justify-between items-center pt-2">
+              <span class="text-xs text-slate-500">Supports standard email formatting</span>
+              <button onclick="switchTab('tab-recipients')" class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm transition">
+                <span>Continue to Companies</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: COMPANIES & RECIPIENTS LIST -->
+    <section id="tab-recipients" class="tab-content space-y-6 hidden">
+      <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-6 space-y-6">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-brand-400"></i>
+              Recipients & Company Directory
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Upload a CSV or Excel sheet with columns for Company, Email, Name, and Role</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openAddCompanyModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold transition shadow-lg shadow-brand-500/20">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>+ Add Company</span>
+            </button>
+            <button onclick="openQuickPasteModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600/90 hover:bg-indigo-600 text-white text-xs font-bold transition">
+              <i data-lucide="clipboard-paste" class="w-3.5 h-3.5"></i>
+              <span>Quick Paste</span>
+            </button>
+            <button onclick="document.getElementById('recipientFileInput').click()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+              <span>Upload CSV/Excel</span>
+            </button>
+            <input type="file" id="recipientFileInput" accept=".csv,.xlsx,.xls" class="hidden" onchange="handleRecipientsFile(event)">
+            <button onclick="downloadSampleCsv()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Template CSV</span>
+            </button>
+            <button onclick="clearRecipientsList()" class="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs font-semibold border border-slate-800 hover:border-rose-900/50 transition" title="Clear all companies">
+              <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter bar & selection controls -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 cursor-pointer font-medium text-slate-300">
+              <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" checked class="rounded border-slate-700 text-brand-600 focus:ring-0 bg-slate-950">
+              <span>Select All Valid</span>
+            </label>
+            <span class="text-slate-600">|</span>
+            <span id="selectedCountLabel" class="text-brand-400 font-semibold">0 companies selected</span>
+          </div>
+
+          <div class="relative w-full sm:w-64">
+            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500"></i>
+            <input type="text" id="filterInput" oninput="filterRecipients(this.value)" placeholder="Search company, name, email..." class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-brand-500">
+          </div>
+        </div>
+
+        <!-- Table of recipients -->
+        <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/60 max-h-[460px] overflow-y-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-900/90 text-slate-400 font-semibold sticky top-0 uppercase tracking-wider text-[11px] border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3 w-10 text-center">#</th>
+                <th class="py-3 px-3">Company</th>
+                <th class="py-3 px-3">Contact Person</th>
+                <th class="py-3 px-3">Email Address</th>
+                <th class="py-3 px-3">Role</th>
+                <th class="py-3 px-3 text-center">Status</th>
+                <th class="py-3 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="recipientsTableBody" class="divide-y divide-slate-800/60 font-sans">
+              <!-- Rendered via JS -->
+              <tr>
+                <td colspan="7" class="py-12 text-center text-slate-500">
+                  <div class="flex flex-col items-center justify-center space-y-2">
+                    <i data-lucide="folder-open" class="w-8 h-8 text-slate-600"></i>
+                    <span>No companies loaded yet. Upload your CSV/Excel or load sample data.</span>
+                    <button onclick="loadSampleData()" class="mt-2 text-xs text-brand-400 hover:underline">Load Demo 5 Companies</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <button onclick="switchTab('tab-resume')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>Back to Resume</span>
+          </button>
+          <button onclick="switchTab('tab-dispatch')" class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold transition">
+            <span>Proceed to Review & Send</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 4: REVIEW & LIVE LAUNCH DISPATCHER -->
+    <section id="tab-dispatch" class="tab-content space-y-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- LEFT COLUMN: LIVE PREVIEW & TEST EMAIL -->
+        <div class="space-y-6">
+          <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-6 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="eye" class="w-4 h-4 text-brand-400"></i>
+              Live Email Preview
+            </h3>
+            <p class="text-xs text-slate-400">Here is what the recipient will see in their inbox:</p>
+
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2.5">
+              <div class="flex items-start gap-2 border-b border-slate-800 pb-2">
+                <span class="text-slate-500 font-semibold w-14">From:</span>
+                <span id="prevFrom" class="text-slate-300 font-medium">Your Name &lt;your.email@gmail.com&gt;</span>
+              </div>
+              <div class="flex items-start gap-2 border-b border-slate-800 pb-2">
+                <span class="text-slate-500 font-semibold w-14">To:</span>
+                <span id="prevTo" class="text-slate-300 font-medium">hr@example.com</span>
+              </div>
+              <div class="flex items-start gap-2 border-b border-slate-800 pb-2">
+                <span class="text-slate-500 font-semibold w-14">Subject:</span>
+                <span id="prevSubject" class="text-white font-bold">Application for Role</span>
+              </div>
+              <div class="flex items-start gap-2 border-b border-slate-800 pb-2">
+                <span class="text-slate-500 font-semibold w-14">Attached:</span>
+                <span id="prevAttachment" class="text-brand-400 font-semibold flex items-center gap-1">
+                  <i data-lucide="paperclip" class="w-3 h-3"></i> None
+                </span>
+              </div>
+              <div id="prevBody" class="text-slate-300 pt-2 whitespace-pre-wrap leading-relaxed max-h-56 overflow-y-auto">
+                Email pitch preview...
+              </div>
+            </div>
+
+            <!-- SEND TEST TO MYSELF -->
+            <div class="pt-3 border-t border-slate-800 space-y-2.5">
+              <label class="block text-xs font-semibold text-slate-300">Send Test Email to Yourself First</label>
+              <div class="flex gap-2">
+                <input type="email" id="testEmailTarget" placeholder="your.personal@gmail.com" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                <button onclick="sendTestEmail()" id="btnSendTest" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 shrink-0 transition flex items-center gap-1.5">
+                  <i data-lucide="send" class="w-3.5 h-3.5 text-brand-400"></i>
+                  <span>Test Send</span>
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-500">Safely test your inbox delivery & formatting before contacting companies.</p>
+              <div id="testAlertBox" class="hidden p-2 rounded-lg text-xs border"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: DISPATCH CONSOLE -->
+        <div class="lg:col-span-2 rounded-2xl bg-slate-900/80 border border-slate-800 p-6 space-y-6">
+
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i data-lucide="rocket" class="w-5 h-5 text-brand-400"></i>
+                Campaign Dispatch Console
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Automated 1-to-1 dispatch with human-mimicking delay</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="startCampaign()" id="btnStartCampaign" class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 transition">
+                <i data-lucide="play" class="w-4 h-4 fill-white"></i>
+                <span>Launch Campaign</span>
+              </button>
+              <button onclick="stopCampaign()" id="btnStopCampaign" disabled class="hidden flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition">
+                <i data-lucide="square" class="w-4 h-4 fill-white"></i>
+                <span>Stop</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- PROGRESS METRICS -->
+          <div class="grid grid-cols-4 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <span class="text-xs text-slate-400">Total Queue</span>
+              <div id="progTotal" class="text-xl font-bold text-white mt-0.5">0</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <span class="text-xs text-emerald-400">Sent Success</span>
+              <div id="progSent" class="text-xl font-bold text-emerald-400 mt-0.5">0</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <span class="text-xs text-rose-400">Failed / Errors</span>
+              <div id="progFailed" class="text-xl font-bold text-rose-400 mt-0.5">0</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <span class="text-xs text-brand-400">Progress</span>
+              <div id="progPercent" class="text-xl font-bold text-brand-400 mt-0.5">0%</div>
+            </div>
+          </div>
+
+          <!-- PROGRESS BAR -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs text-slate-400 font-medium">
+              <span id="currentStatusText">Ready to start</span>
+              <span id="progressFraction">0 / 0</span>
+            </div>
+            <div class="w-full h-3 rounded-full bg-slate-950 border border-slate-800 overflow-hidden">
+              <div id="progressBarFill" class="h-full bg-gradient-to-r from-brand-600 to-emerald-500 transition-all duration-300 w-0"></div>
+            </div>
+          </div>
+
+          <!-- LIVE ACTIVITY TERMINAL LOG -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <i data-lucide="terminal" class="w-3.5 h-3.5 text-slate-400"></i>
+                Live Activity Log
+              </span>
+              <button onclick="downloadReport()" id="btnDownloadReport" disabled class="text-[11px] px-2.5 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700 hover:text-white transition flex items-center gap-1">
+                <i data-lucide="file-spreadsheet" class="w-3 h-3"></i>
+                <span>Download Report CSV</span>
+              </button>
+            </div>
+            <div id="terminalLogBox" class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 h-64 overflow-y-auto space-y-1.5">
+              <div class="text-slate-600 italic">// Campaign logs will stream here in real time...</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- GMAIL APP PASSWORD INSTRUCTIONS MODAL -->
+  <div id="gmailModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
+      <button onclick="closeGmailHelpModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+          <i data-lucide="key" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">How to Get a Gmail App Password</h3>
+          <p class="text-xs text-slate-400">Required by Google for secure automated email dispatch</p>
+        </div>
+      </div>
+
+      <div class="space-y-3.5 text-xs text-slate-300 leading-relaxed">
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-start gap-3">
+          <span class="w-5 h-5 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">1</span>
+          <div>
+            <strong class="text-white">Enable 2-Step Verification:</strong> Go to your Google Account security settings and make sure 2-Step Verification is turned ON.
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-start gap-3">
+          <span class="w-5 h-5 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">2</span>
+          <div>
+            <strong class="text-white">Open App Passwords Page:</strong> Directly open:
+            <br>
+            <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-brand-400 hover:underline font-mono text-[11px] block mt-1">
+              https://myaccount.google.com/apppasswords &rarr;
+            </a>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-start gap-3">
+          <span class="w-5 h-5 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">3</span>
+          <div>
+            <strong class="text-white">Generate Code:</strong> In the App name box, type <code>Job Mailer</code> and click <strong>Create</strong>. Google will show you a yellow banner with a 16-letter password (e.g. <code>abcd efgh ijkl mnop</code>).
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-start gap-3">
+          <span class="w-5 h-5 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">4</span>
+          <div>
+            <strong class="text-white">Paste into AutoReach:</strong> Copy and paste that 16-letter code into the AutoReach password field. You're done!
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeGmailHelpModal()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold transition">
+          I Understand
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD COMPANY MODAL -->
+  <div id="addCompanyModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+      <button onclick="closeAddCompanyModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 flex items-center justify-center border border-brand-500/20">
+          <i data-lucide="building-2" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Add Company Recipient</h3>
+          <p class="text-xs text-slate-400">Manually insert a single company into your queue</p>
+        </div>
+      </div>
+
+      <form onsubmit="saveManualCompany(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Company Name *</label>
+          <input type="text" id="manualCompany" required placeholder="e.g. Google, Stripe, Tesla" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Recruiter / HR Email *</label>
+          <input type="email" id="manualEmail" required placeholder="recruiter@company.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-500 font-mono">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Contact Person Name (Optional)</label>
+          <input type="text" id="manualName" placeholder="e.g. Sarah Jenkins (leave blank for 'Hiring Team')" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Target Position / Role (Optional)</label>
+          <input type="text" id="manualRole" placeholder="e.g. Software Engineer" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeAddCompanyModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold transition flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add to Queue</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- QUICK PASTE MODAL -->
+  <div id="quickPasteModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+      <button onclick="closeQuickPasteModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+          <i data-lucide="clipboard-paste" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Quick Paste Companies & Emails</h3>
+          <p class="text-xs text-slate-400">Paste a list of emails directly (one per line, or comma-separated)</p>
+        </div>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <label class="block font-medium text-slate-300">Supported formats:</label>
+        <div class="p-2.5 rounded-lg bg-slate-950 font-mono text-[11px] text-slate-400 leading-relaxed border border-slate-800">
+          • Google, hr@google.com, Sarah, Software Engineer<br>
+          • Microsoft, jobs@microsoft.com<br>
+          • careers@netflix.com
+        </div>
+        <textarea id="quickPasteText" rows="8" placeholder="Paste your emails or rows here..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-brand-500"></textarea>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 text-xs">
+        <span class="text-slate-500">Auto-detects email & company name</span>
+        <div class="flex gap-2">
+          <button type="button" onclick="closeQuickPasteModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition">
+            Cancel
+          </button>
+          <button type="button" onclick="processQuickPaste()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition flex items-center gap-1.5">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>Import Emails</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT LOGIC -->
+  <script>
+    // State
+    let appConfig = {};
+    let allRecipients = [];
+    let selectedResume = null;
+    let templatesList = [];
+    let pollInterval = null;
+    let campaignResults = [];
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      await fetchConfig();
+      await fetchTemplates();
+      await fetchResumes();
+      updatePreview();
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-brand-500/40', 'bg-brand-500/10', 'text-white');
+        btn.classList.add('border-slate-800', 'bg-slate-900/50', 'text-slate-400');
+        const num = btn.querySelector('span');
+        if (num) {
+          num.classList.remove('bg-brand-500', 'text-white');
+          num.classList.add('bg-slate-800', 'text-slate-300');
+        }
+      });
+
+      const activeTab = document.getElementById(tabId);
+      if (activeTab) activeTab.classList.remove('hidden');
+
+      const activeBtn = document.getElementById('nav-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-slate-800', 'bg-slate-900/50', 'text-slate-400');
+        activeBtn.classList.add('border-brand-500/40', 'bg-brand-500/10', 'text-white');
+        const num = activeBtn.querySelector('span');
+        if (num) {
+          num.classList.remove('bg-slate-800', 'text-slate-300');
+          num.classList.add('bg-brand-500', 'text-white');
+        }
+      }
+
+      if (tabId === 'tab-dispatch') {
+        updatePreview();
+      }
+      lucide.createIcons();
+    }
+
+    async function fetchConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const cfg = await res.json();
+        appConfig = cfg;
+        document.getElementById('cfgSenderName').value = cfg.sender_name || '';
+        document.getElementById('cfgSenderEmail').value = cfg.sender_email || '';
+        if (cfg.has_password) {
+          document.getElementById('cfgPassword').value = cfg.smtp_password_masked || '';
+        }
+        document.getElementById('cfgSmtpHost').value = cfg.smtp_host || 'smtp.gmail.com';
+        document.getElementById('cfgSmtpPort').value = cfg.smtp_port || 465;
+        document.getElementById('cfgSmtpSecurity').value = cfg.smtp_security || 'SSL';
+        document.getElementById('cfgMinDelay').value = cfg.min_delay || 5;
+        document.getElementById('cfgMaxDelay').value = cfg.max_delay || 10;
+        document.getElementById('testEmailTarget').value = cfg.sender_email || '';
+
+        onProviderChange(cfg.smtp_provider || 'gmail');
+        updateTopStats();
+      } catch (err) {
+        console.error("Failed to load config", err);
+      }
+    }
+
+    function onProviderChange(provider) {
+      document.querySelectorAll('[id^="providerLabel-"]').forEach(el => {
+        el.classList.remove('border-brand-500/40', 'bg-brand-500/10');
+        el.classList.add('border-slate-800', 'bg-slate-900/50');
+      });
+      const selectedLabel = document.getElementById('providerLabel-' + provider);
+      if (selectedLabel) {
+        selectedLabel.classList.remove('border-slate-800', 'bg-slate-900/50');
+        selectedLabel.classList.add('border-brand-500/40', 'bg-brand-500/10');
+      }
+
+      const customFields = document.getElementById('customSmtpFields');
+      const lblPassword = document.getElementById('lblPassword');
+
+      if (provider === 'gmail') {
+        document.getElementById('cfgSmtpHost').value = 'smtp.gmail.com';
+        document.getElementById('cfgSmtpPort').value = 465;
+        document.getElementById('cfgSmtpSecurity').value = 'SSL';
+        lblPassword.innerText = 'Gmail 16-character App Password';
+        customFields.classList.add('hidden');
+      } else if (provider === 'outlook') {
+        document.getElementById('cfgSmtpHost').value = 'smtp.office365.com';
+        document.getElementById('cfgSmtpPort').value = 587;
+        document.getElementById('cfgSmtpSecurity').value = 'TLS';
+        lblPassword.innerText = 'Outlook Password or App Password';
+        customFields.classList.add('hidden');
+      } else {
+        lblPassword.innerText = 'SMTP Password';
+        customFields.classList.remove('hidden');
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById('cfgPassword');
+      const icon = document.getElementById('eyeIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+      } else {
+        input.type = 'password';
+      }
+    }
+
+    async function saveSettings(e) {
+      if (e) e.preventDefault();
+      const providerRadio = document.querySelector('input[name="provider"]:checked');
+      const provider = providerRadio ? providerRadio.value : 'gmail';
+
+      const payload = {
+        sender_name: document.getElementById('cfgSenderName').value.trim(),
+        sender_email: document.getElementById('cfgSenderEmail').value.trim(),
+        smtp_provider: provider,
+        smtp_host: document.getElementById('cfgSmtpHost').value.trim(),
+        smtp_port: parseInt(document.getElementById('cfgSmtpPort').value) || 465,
+        smtp_security: document.getElementById('cfgSmtpSecurity').value,
+        smtp_password: document.getElementById('cfgPassword').value,
+        min_delay: parseInt(document.getElementById('cfgMinDelay').value) || 5,
+        max_delay: parseInt(document.getElementById('cfgMaxDelay').value) || 10,
+        daily_limit: 100
+      };
+
+      const btn = document.getElementById('btnSaveConfig');
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Saving...</span>`;
+      lucide.createIcons();
+
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        showAlert('connAlertBox', data.message || 'Settings saved!', 'success');
+        await fetchConfig();
+      } catch (err) {
+        showAlert('connAlertBox', 'Error saving settings: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Save Email Settings</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function testSmtpConnection() {
+      const btn = document.getElementById('btnTestConn');
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Testing...</span>`;
+      lucide.createIcons();
+
+      const payload = {
+        sender_email: document.getElementById('cfgSenderEmail').value.trim(),
+        smtp_host: document.getElementById('cfgSmtpHost').value.trim(),
+        smtp_port: parseInt(document.getElementById('cfgSmtpPort').value) || 465,
+        smtp_security: document.getElementById('cfgSmtpSecurity').value,
+        smtp_password: document.getElementById('cfgPassword').value
+      };
+
+      try {
+        const res = await fetch('/api/test-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert('connAlertBox', data.message, 'success');
+          document.getElementById('statConnectionStatus').innerText = 'Connected';
+          document.getElementById('statConnectionStatus').className = 'text-xl font-bold text-emerald-400';
+        } else {
+          showAlert('connAlertBox', data.detail || 'Connection failed', 'error');
+          document.getElementById('statConnectionStatus').innerText = 'Failed';
+          document.getElementById('statConnectionStatus').className = 'text-xl font-bold text-rose-400';
+        }
+      } catch (err) {
+        showAlert('connAlertBox', 'Connection failed: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i><span>Test Connection</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    function showAlert(boxId, msg, type) {
+      const box = document.getElementById(boxId);
+      box.classList.remove('hidden', 'bg-emerald-500/10', 'text-emerald-300', 'border-emerald-500/30', 'bg-rose-500/10', 'text-rose-300', 'border-rose-500/30');
+      if (type === 'success') {
+        box.classList.add('bg-emerald-500/10', 'text-emerald-300', 'border-emerald-500/30');
+      } else {
+        box.classList.add('bg-rose-500/10', 'text-rose-300', 'border-rose-500/30');
+      }
+      box.innerText = msg;
+    }
+
+    // RESUME HANDLING
+    async function fetchResumes() {
+      try {
+        const res = await fetch('/api/resumes');
+        const list = await res.json();
+        if (list && list.length > 0) {
+          setResumeActive(list[0]);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function setResumeActive(resumeObj) {
+      selectedResume = resumeObj.filename;
+      document.getElementById('selectedResumeCard').classList.remove('hidden');
+      document.getElementById('currentResumeName').innerText = resumeObj.filename;
+      document.getElementById('currentResumeSize').innerText = resumeObj.size;
+      document.getElementById('statResumeStatus').innerText = 'Ready';
+      document.getElementById('statResumeStatus').className = 'text-xl font-bold text-emerald-400';
+      updatePreview();
+    }
+
+    async function handleResumeSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/upload-resume', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setResumeActive({ filename: data.filename, size: data.size });
+        } else {
+          alert(data.detail || 'Resume upload failed');
+        }
+      } catch (err) {
+        alert('Resume upload error: ' + err.message);
+      }
+    }
+
+    // TEMPLATES
+    async function fetchTemplates() {
+      try {
+        const res = await fetch('/api/templates');
+        templatesList = await res.json();
+        renderTemplateButtons();
+        if (templatesList.length > 0) {
+          applyTemplate(templatesList[0]);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderTemplateButtons() {
+      const container = document.getElementById('templateButtons');
+      container.innerHTML = '';
+      templatesList.forEach((tpl, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `w-full text-left text-xs p-2.5 rounded-lg border border-slate-800 hover:border-brand-500/50 hover:bg-slate-800 transition flex items-center justify-between group ${idx === 0 ? 'bg-slate-800 border-brand-500/40' : 'bg-slate-950/60'}`;
+        btn.innerHTML = `
+          <span class="font-medium text-slate-200 group-hover:text-white truncate">${tpl.name}</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-brand-400"></i>
+        `;
+        btn.onclick = () => {
+          document.querySelectorAll('#templateButtons button').forEach(b => b.classList.remove('bg-slate-800', 'border-brand-500/40'));
+          btn.classList.add('bg-slate-800', 'border-brand-500/40');
+          applyTemplate(tpl);
+        };
+        container.appendChild(btn);
+      });
+      lucide.createIcons();
+    }
+
+    function applyTemplate(tpl) {
+      document.getElementById('emailSubject').value = tpl.subject;
+      document.getElementById('emailBody').value = tpl.body;
+      updatePreview();
+    }
+
+    function insertPlaceholder(tag) {
+      const textarea = document.getElementById('emailBody');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      textarea.value = text.substring(0, start) + tag + text.substring(end);
+      textarea.selectionStart = textarea.selectionEnd = start + tag.length;
+      textarea.focus();
+      updatePreview();
+    }
+
+    // RECIPIENTS HANDLING
+    async function handleRecipientsFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/upload-recipients', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          allRecipients = data.recipients;
+          renderRecipientsTable(allRecipients);
+          updateTopStats();
+          updatePreview();
+        } else {
+          alert(data.detail || 'Failed to parse recipients file');
+        }
+      } catch (err) {
+        alert('File upload error: ' + err.message);
+      }
+    }
+
+    async function loadSampleData() {
+      try {
+        const res = await fetch('/api/download-sample-csv');
+        const blob = await res.blob();
+        const file = new File([blob], 'job_companies_template.csv', { type: 'text/csv' });
+        const formData = new FormData();
+        formData.append('file', file);
+        const uploadRes = await fetch('/api/upload-recipients', { method: 'POST', body: formData });
+        const data = await uploadRes.json();
+        if (uploadRes.ok) {
+          allRecipients = data.recipients;
+          renderRecipientsTable(allRecipients);
+          updateTopStats();
+          updatePreview();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderRecipientsTable(recipients) {
+      const tbody = document.getElementById('recipientsTableBody');
+      if (!recipients || recipients.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500">No matching companies found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = recipients.map((r, i) => {
+        const isValid = r.valid && !r.duplicate;
+        const statusBadge = !r.valid
+          ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Invalid Email</span>`
+          : r.duplicate
+          ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Duplicate</span>`
+          : `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ready</span>`;
+
+        return `
+          <tr class="hover:bg-slate-900/60 transition ${r.selected ? 'bg-brand-500/5' : ''}">
+            <td class="py-2.5 px-3 text-center">
+              <input type="checkbox" ${r.selected ? 'checked' : ''} ${!isValid ? 'disabled' : ''} onchange="toggleRecipient(${r.id}, this.checked)" class="rounded border-slate-700 text-brand-600 focus:ring-0 bg-slate-950">
+            </td>
+            <td class="py-2.5 px-3 font-semibold text-white">${escapeHtml(r.company)}</td>
+            <td class="py-2.5 px-3 text-slate-300">${escapeHtml(r.name)}</td>
+            <td class="py-2.5 px-3 font-mono text-slate-300">${escapeHtml(r.email)}</td>
+            <td class="py-2.5 px-3 text-slate-300">${escapeHtml(r.role)}</td>
+            <td class="py-2.5 px-3 text-center">${statusBadge}</td>
+            <td class="py-2.5 px-3 text-right">
+              <button onclick="deleteRecipient(${r.id})" class="text-slate-500 hover:text-rose-400 transition">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+      updateSelectedCount();
+    }
+
+    function toggleRecipient(id, isChecked) {
+      const item = allRecipients.find(r => r.id === id);
+      if (item) {
+        item.selected = isChecked;
+      }
+      updateSelectedCount();
+    }
+
+    function toggleSelectAll(isChecked) {
+      allRecipients.forEach(r => {
+        if (r.valid && !r.duplicate) {
+          r.selected = isChecked;
+        }
+      });
+      renderRecipientsTable(allRecipients);
+    }
+
+    function deleteRecipient(id) {
+      allRecipients = allRecipients.filter(r => r.id !== id);
+      renderRecipientsTable(allRecipients);
+      updateTopStats();
+    }
+
+    function filterRecipients(query) {
+      const q = query.toLowerCase().trim();
+      if (!q) {
+        renderRecipientsTable(allRecipients);
+        return;
+      }
+      const filtered = allRecipients.filter(r =>
+        r.company.toLowerCase().includes(q) ||
+        r.name.toLowerCase().includes(q) ||
+        r.email.toLowerCase().includes(q) ||
+        r.role.toLowerCase().includes(q)
+      );
+      renderRecipientsTable(filtered);
+    }
+
+    function updateSelectedCount() {
+      const count = allRecipients.filter(r => r.selected).length;
+      document.getElementById('selectedCountLabel').innerText = `${count} companies selected`;
+      document.getElementById('progTotal').innerText = count;
+      document.getElementById('progressFraction').innerText = `0 / ${count}`;
+    }
+
+    function updateTopStats() {
+      document.getElementById('statTotalRecipients').innerText = allRecipients.filter(r => r.selected).length;
+      updateSelectedCount();
+    }
+
+    function downloadSampleCsv() {
+      window.location.href = '/api/download-sample-csv';
+    }
+
+    // PREVIEW RENDERING
+    function updatePreview() {
+      const senderName = document.getElementById('cfgSenderName').value.trim() || 'Your Name';
+      const senderEmail = document.getElementById('cfgSenderEmail').value.trim() || 'your.email@gmail.com';
+      const rawSubject = document.getElementById('emailSubject').value;
+      const rawBody = document.getElementById('emailBody').value;
+
+      // Pick first selected recipient as sample, or fallback
+      const sample = allRecipients.find(r => r.selected) || {
+        company: 'Google',
+        name: 'Hiring Team',
+        email: 'jobs@google.com',
+        role: 'Software Engineer'
+      };
+
+      const vars = {
+        Company: sample.company,
+        Name: sample.name,
+        Role: sample.role,
+        SenderName: senderName,
+        SenderEmail: senderEmail
+      };
+
+      document.getElementById('prevFrom').innerText = `"${senderName}" <${senderEmail}>`;
+      document.getElementById('prevTo').innerText = `"${sample.name}" <${sample.email}>`;
+      document.getElementById('prevSubject').innerText = renderVars(rawSubject, vars);
+      document.getElementById('prevBody').innerText = renderVars(rawBody, vars);
+
+      const prevAttach = document.getElementById('prevAttachment');
+      if (selectedResume) {
+        prevAttach.innerHTML = `<i data-lucide="paperclip" class="w-3 h-3"></i> ${selectedResume}`;
+        prevAttach.className = 'text-brand-400 font-semibold flex items-center gap-1';
+      } else {
+        prevAttach.innerHTML = `<i data-lucide="paperclip" class="w-3 h-3"></i> None`;
+        prevAttach.className = 'text-slate-500 font-semibold flex items-center gap-1';
+      }
+      lucide.createIcons();
+    }
+
+    function renderVars(text, vars) {
+      let res = text;
+      for (const [k, v] of Object.entries(vars)) {
+        res = res.replaceAll(new RegExp(`\\{${k}\\}`, 'gi'), v || '');
+      }
+      return res;
+    }
+
+    // SEND TEST EMAIL
+    async function sendTestEmail() {
+      const target = document.getElementById('testEmailTarget').value.trim();
+      if (!target) {
+        alert('Please enter your email to receive the test email.');
+        return;
+      }
+
+      const btn = document.getElementById('btnSendTest');
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Sending...</span>`;
+      lucide.createIcons();
+
+      const sample = allRecipients.find(r => r.selected) || {
+        company: 'Demo Company',
+        name: 'Hiring Manager',
+        role: 'Software Engineer'
+      };
+
+      const payload = {
+        test_recipient_email: target,
+        subject: document.getElementById('emailSubject').value,
+        body: document.getElementById('emailBody').value,
+        resume_filename: selectedResume,
+        company: sample.company,
+        name: sample.name,
+        role: sample.role
+      };
+
+      try {
+        const res = await fetch('/api/send-test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert('testAlertBox', data.message, 'success');
+        } else {
+          showAlert('testAlertBox', data.detail || 'Test send failed', 'error');
+        }
+      } catch (err) {
+        showAlert('testAlertBox', 'Error: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="send" class="w-3.5 h-3.5 text-brand-400"></i><span>Test Send</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    // CAMPAIGN DISPATCH CONTROLS
+    async function startCampaign() {
+      const selected = allRecipients.filter(r => r.selected);
+      if (selected.length === 0) {
+        alert('Please select at least one company in the Companies List tab!');
+        switchTab('tab-recipients');
+        return;
+      }
+
+      if (!confirm(`Are you ready to send your resume & application to ${selected.length} companies?`)) {
+        return;
+      }
+
+      const payload = {
+        subject: document.getElementById('emailSubject').value,
+        body: document.getElementById('emailBody').value,
+        resume_filename: selectedResume,
+        recipients: selected,
+        min_delay: parseInt(document.getElementById('cfgMinDelay').value) || 5,
+        max_delay: parseInt(document.getElementById('cfgMaxDelay').value) || 10
+      };
+
+      try {
+        const res = await fetch('/api/start-campaign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('btnStartCampaign').classList.add('hidden');
+          document.getElementById('btnStopCampaign').classList.remove('hidden');
+          document.getElementById('btnStopCampaign').disabled = false;
+          startPollingCampaign();
+        } else {
+          alert(data.detail || 'Could not start campaign');
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    async function stopCampaign() {
+      const btn = document.getElementById('btnStopCampaign');
+      btn.disabled = true;
+      btn.innerText = 'Stopping...';
+      try {
+        await fetch('/api/stop-campaign', { method: 'POST' });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function startPollingCampaign() {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(pollStatus, 1000);
+      pollStatus();
+    }
+
+    async function pollStatus() {
+      try {
+        const res = await fetch('/api/campaign-status');
+        const status = await res.json();
+
+        // Update counts
+        document.getElementById('progTotal').innerText = status.total;
+        document.getElementById('progSent').innerText = status.sent;
+        document.getElementById('progFailed').innerText = status.failed;
+
+        const processed = status.processed || 0;
+        const total = status.total || 1;
+        const pct = Math.round((processed / total) * 100);
+
+        document.getElementById('progPercent').innerText = `${pct}%`;
+        document.getElementById('progressBarFill').style.width = `${pct}%`;
+        document.getElementById('progressFraction').innerText = `${processed} / ${total}`;
+
+        if (status.is_running) {
+          document.getElementById('currentStatusText').innerHTML = `
+            <span class="inline-flex items-center gap-1.5 text-brand-400">
+              <span class="w-2 h-2 rounded-full bg-brand-400 animate-ping"></span>
+              Sending to <strong>${escapeHtml(status.current_company)}</strong> (${escapeHtml(status.current_recipient)})...
+            </span>
+          `;
+        } else {
+          document.getElementById('currentStatusText').innerText = processed > 0 ? 'Campaign Completed!' : 'Ready to start';
+          document.getElementById('btnStartCampaign').classList.remove('hidden');
+          document.getElementById('btnStopCampaign').classList.add('hidden');
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
+          if (status.results && status.results.length > 0) {
+            campaignResults = status.results;
+            document.getElementById('btnDownloadReport').disabled = false;
+            document.getElementById('btnDownloadReport').classList.remove('text-slate-400');
+            document.getElementById('btnDownloadReport').classList.add('text-emerald-400', 'border-emerald-500/30', 'bg-emerald-500/10');
+          }
+        }
+
+        // Render terminal logs
+        const logBox = document.getElementById('terminalLogBox');
+        if (status.logs && status.logs.length > 0) {
+          logBox.innerHTML = status.logs.map(log => {
+            let color = 'text-slate-300';
+            if (log.type === 'success') color = 'text-emerald-400 font-semibold';
+            if (log.type === 'error') color = 'text-rose-400 font-semibold';
+            if (log.type === 'warning') color = 'text-amber-400';
+            if (log.type === 'info') color = 'text-brand-400';
+            return `<div class="${color}"><span class="text-slate-600">[${log.time}]</span> ${escapeHtml(log.text)}</div>`;
+          }).join('');
+          logBox.scrollTop = logBox.scrollHeight;
+        }
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function downloadReport() {
+      if (!campaignResults || campaignResults.length === 0) return;
+      let csv = "Company,Name,Email,Role,Status,Timestamp,Error\n";
+      campaignResults.forEach(r => {
+        csv += `"${(r.company||'').replace(/"/g, '""')}","${(r.name||'').replace(/"/g, '""')}","${r.email}","${(r.role||'').replace(/"/g, '""')}","${r.status}","${r.timestamp}","${(r.error||'').replace(/"/g, '""')}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `campaign_report_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // MANUAL COMPANY ADDITION
+    function openAddCompanyModal() {
+      document.getElementById('addCompanyModal').classList.remove('hidden');
+      document.getElementById('manualCompany').focus();
+    }
+
+    function closeAddCompanyModal() {
+      document.getElementById('addCompanyModal').classList.add('hidden');
+    }
+
+    function saveManualCompany(e) {
+      if (e) e.preventDefault();
+      const company = document.getElementById('manualCompany').value.trim();
+      const email = document.getElementById('manualEmail').value.trim();
+      const name = document.getElementById('manualName').value.trim() || 'Hiring Team';
+      const role = document.getElementById('manualRole').value.trim() || 'Software Engineer';
+
+      if (!company || !email) {
+        alert('Company and Email are required.');
+        return;
+      }
+
+      const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+      const isValid = emailRegex.test(email);
+      const isDup = allRecipients.some(r => r.email.toLowerCase() === email.toLowerCase());
+
+      const newId = allRecipients.length > 0 ? Math.max(...allRecipients.map(r => r.id)) + 1 : 1;
+      allRecipients.unshift({
+        id: newId,
+        company: company,
+        name: name,
+        email: email,
+        role: role,
+        valid: isValid,
+        duplicate: isDup,
+        selected: isValid && !isDup,
+        extra: {}
+      });
+
+      renderRecipientsTable(allRecipients);
+      updateTopStats();
+      updatePreview();
+      closeAddCompanyModal();
+
+      document.getElementById('manualCompany').value = '';
+      document.getElementById('manualEmail').value = '';
+      document.getElementById('manualName').value = '';
+      document.getElementById('manualRole').value = '';
+    }
+
+    // QUICK PASTE IMPORT
+    function openQuickPasteModal() {
+      document.getElementById('quickPasteModal').classList.remove('hidden');
+      document.getElementById('quickPasteText').focus();
+    }
+
+    function closeQuickPasteModal() {
+      document.getElementById('quickPasteModal').classList.add('hidden');
+    }
+
+    function processQuickPaste() {
+      const text = document.getElementById('quickPasteText').value.trim();
+      if (!text) {
+        closeQuickPasteModal();
+        return;
+      }
+
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/;
+      let added = 0;
+
+      lines.forEach(line => {
+        const emailMatch = line.match(emailRegex);
+        if (!emailMatch) return;
+
+        const email = emailMatch[1];
+        let company = 'Company';
+        let name = 'Hiring Team';
+        let role = 'Software Engineer';
+
+        const parts = line.split(/[,\t]+/).map(p => p.trim());
+        if (parts.length >= 2) {
+          if (parts[0].includes('@')) {
+            company = parts[1] || 'Company';
+          } else {
+            company = parts[0] || 'Company';
+          }
+          if (parts.length >= 3 && !parts[2].includes('@')) name = parts[2];
+          if (parts.length >= 4) role = parts[3];
+        } else {
+          const domain = email.split('@')[1];
+          const domainName = domain ? domain.split('.')[0] : '';
+          if (domainName && !['gmail', 'yahoo', 'outlook', 'hotmail', 'protonmail'].includes(domainName.toLowerCase())) {
+            company = domainName.charAt(0).toUpperCase() + domainName.slice(1);
+          }
+        }
+
+        const isDup = allRecipients.some(r => r.email.toLowerCase() === email.toLowerCase());
+        const newId = allRecipients.length > 0 ? Math.max(...allRecipients.map(r => r.id)) + 1 : 1;
+        
+        allRecipients.push({
+          id: newId,
+          company: company,
+          name: name,
+          email: email,
+          role: role,
+          valid: true,
+          duplicate: isDup,
+          selected: !isDup,
+          extra: {}
+        });
+        added++;
+      });
+
+      renderRecipientsTable(allRecipients);
+      updateTopStats();
+      updatePreview();
+      closeQuickPasteModal();
+      document.getElementById('quickPasteText').value = '';
+    }
+
+    function clearRecipientsList() {
+      if (allRecipients.length === 0) return;
+      if (confirm('Are you sure you want to clear all companies from the list?')) {
+        allRecipients = [];
+        renderRecipientsTable(allRecipients);
+        updateTopStats();
+        updatePreview();
+      }
+    }
+
+    // UTILITIES
+    function openGmailHelpModal() {
+      document.getElementById('gmailModal').classList.remove('hidden');
+    }
+
+    function closeGmailHelpModal() {
+      document.getElementById('gmailModal').classList.add('hidden');
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

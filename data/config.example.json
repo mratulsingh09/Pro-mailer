@@ -1,0 +1,12 @@
+{
+  "sender_name": "Your Name",
+  "sender_email": "your.email@gmail.com",
+  "smtp_provider": "gmail",
+  "smtp_host": "smtp.gmail.com",
+  "smtp_port": 465,
+  "smtp_security": "SSL",
+  "smtp_password": "your-app-password-here",
+  "min_delay": 5,
+  "max_delay": 10,
+  "daily_limit": 100
+}

@@ -139,24 +139,28 @@ Sincerely,
 ]
 
 def load_config() -> dict:
-    if CONFIG_FILE.exists():
-        try:
-            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {
-        "sender_name": "",
-        "sender_email": "",
-        "smtp_provider": "gmail",
-        "smtp_host": "smtp.gmail.com",
-        "smtp_port": 465,
-        "smtp_security": "SSL",
-        "smtp_password": "",
+    cfg = {
+        "sender_name": os.environ.get("SENDER_NAME", ""),
+        "sender_email": os.environ.get("SENDER_EMAIL", ""),
+        "smtp_provider": os.environ.get("SMTP_PROVIDER", "gmail"),
+        "smtp_host": os.environ.get("SMTP_HOST", "smtp.gmail.com"),
+        "smtp_port": int(os.environ.get("SMTP_PORT", 465)),
+        "smtp_security": os.environ.get("SMTP_SECURITY", "SSL"),
+        "smtp_password": os.environ.get("SMTP_PASSWORD", ""),
         "min_delay": 5,
         "max_delay": 10,
         "daily_limit": 100
     }
+    if CONFIG_FILE.exists():
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                saved = json.load(f)
+                for k, v in saved.items():
+                    if v is not None and v != "":
+                        cfg[k] = v
+        except Exception:
+            pass
+    return cfg
 
 def save_config(cfg: dict):
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
@@ -761,16 +765,17 @@ if __name__ == "__main__":
     import uvicorn
     import webbrowser
     
-    port = 8000
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0" if os.environ.get("RENDER") else "127.0.0.1")
     print(f"==================================================")
     print(f" AutoReach Cold Email Dispatcher is starting...   ")
-    print(f" URL: http://localhost:{port}                     ")
+    print(f" URL: http://{host}:{port}                        ")
     print(f"==================================================")
     
-    # Open browser automatically after half a second
-    def open_browser():
-        time.sleep(1.2)
-        webbrowser.open(f"http://localhost:{port}")
-        
-    threading.Thread(target=open_browser, daemon=True).start()
-    uvicorn.run("app:app", host="127.0.0.1", port=port, reload=False)
+    if os.environ.get("RENDER") is None and host == "127.0.0.1":
+        def open_browser():
+            time.sleep(1.2)
+            webbrowser.open(f"http://localhost:{port}")
+        threading.Thread(target=open_browser, daemon=True).start()
+
+    uvicorn.run("app:app", host=host, port=port, reload=False)
